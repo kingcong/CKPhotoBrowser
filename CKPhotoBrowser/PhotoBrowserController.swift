@@ -1,0 +1,333 @@
+//
+//  PhotoBrowerController.swift
+//  PhotoBrower
+//
+//  Created by kingcong on 2019/1/29.
+//  Copyright © 2019 ustc. All rights reserved.
+//
+
+
+import UIKit
+import SDWebImage
+
+private let PhotoBrowserCell = "PhotoBrowserCell"
+
+class PhotoBrowserController: UIViewController {
+    
+    // MARK:- 定义属性
+    private var indexPath : NSIndexPath = NSIndexPath(item: 0, section: 0)
+    var currentIndex: Int {
+        didSet {
+            indexPath = NSIndexPath(item: currentIndex, section: 0)
+        }
+    }
+    
+    var datasourceArray: [PhotoBrowerData]
+    
+    // MARK:- 懒加载属性
+    private lazy var collectionView : UICollectionView = UICollectionView(frame: CGRect.zero, collectionViewLayout: PhotoBrowserCollectionViewLayout())
+    private lazy var closeBtn : UIButton = UIButton(bgColor: UIColor.darkGray, fontSize: 14, title: "关 闭")
+    private lazy var saveBtn : UIButton = UIButton(bgColor: UIColor.darkGray, fontSize: 14, title: "保 存")
+    
+    private lazy var photoBrowserAnimator : PhotoBrowserAnimator = PhotoBrowserAnimator()
+    
+    // MARK:- 自定义构造函数
+    init(currentIndex : Int, datasourceArray : [PhotoBrowerData]) {
+        self.currentIndex = currentIndex
+        self.datasourceArray = datasourceArray
+        // 开始缓存图片
+        super.init(nibName: nil, bundle: nil)
+    }
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    // MARK:- 系统回调函数
+    
+    override func loadView() {
+        super.loadView()
+        
+        view.frame.size.width += 20
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        // 1.设置UI界面
+        setupUI()
+        
+        // 2.缓存图片
+        cacheImages()
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        // 2.滚动到对应的图片
+        collectionView.scrollToItem(at: indexPath as IndexPath, at: .left, animated: false)
+    }
+}
+
+
+// MARK:- 设置UI界面内容
+extension PhotoBrowserController {
+    private func setupUI() {
+        // 1.添加子控件
+        view.addSubview(collectionView)
+        view.addSubview(closeBtn)
+        view.addSubview(saveBtn)
+        
+        // 2.设置frame
+        collectionView.frame = view.bounds
+        closeBtn.frame = CGRect(x: 20, y: SCREEN_HEIGHT-60, width: 90, height: 30)
+        saveBtn.frame = CGRect(x: SCREEN_WIDTH-100, y: SCREEN_HEIGHT-60, width: 90, height: 30)
+        
+        // 3.设置collectionView的属性
+        collectionView.register(PhotoBrowserViewCell.self, forCellWithReuseIdentifier: PhotoBrowserCell)
+        collectionView.dataSource = self
+        
+        // 4.监听两个按钮的点击
+        closeBtn.addTarget(self, action: #selector(PhotoBrowserController.closeBtnClick), for: .touchUpInside)
+        saveBtn.addTarget(self, action: #selector(PhotoBrowserController.saveBtnClick), for: .touchUpInside)
+    }
+}
+
+
+
+// MARK:- 缓存图片
+extension PhotoBrowserController {
+    /// 缓存图片(优先缓存当前选择的图片)
+    private func cacheImages() {
+        // 0.创建group
+        let group = DispatchGroup()
+        
+        // 1.优先缓存当前图片
+        SDWebImageManager.shared().loadImage(with: URL(string: self.datasourceArray[currentIndex].url!), options: [SDWebImageOptions.highPriority], progress: nil) { (_, _, _, _, _, _) in
+            
+        }
+        
+        // 2.缓存图片
+        var index = 0
+        for data in self.datasourceArray {
+            group.enter()
+            guard let url = data.url else {
+                break
+            }
+            // 已经缓存过
+            if index == currentIndex {
+                break
+            }
+            
+            // 缓存其他图片
+            SDWebImageManager.shared().loadImage(with: URL(string: url), options: [], progress: nil) { (_, _, _, _, _, _) in
+                group.leave()
+            }
+            index = index+1
+        }
+    }
+    
+}
+
+// MARK:-设置View的显示
+extension PhotoBrowserController {
+    func show() {
+        // 1.获取前一个控制器
+//        let previousVc = self.view.findController()
+        let previousVc: UIViewController = UIView.currentViewController()
+        
+        // 2.设置modal样式
+        self.modalPresentationStyle = .custom
+        
+        // 4.设置动画的代理
+        photoBrowserAnimator.presentedDelegate = self
+        photoBrowserAnimator.indexPath = indexPath
+        photoBrowserAnimator.dismissDelegate = self
+        
+        // 3.设置转场的代理
+        self.transitioningDelegate = photoBrowserAnimator as UIViewControllerTransitioningDelegate
+        
+        // 4.以modal的形式弹出控制器
+        previousVc.present(self, animated: true, completion: nil)
+    }
+}
+
+// MARK:- 事件监听函数
+extension PhotoBrowserController {
+    @objc private func closeBtnClick() {
+        dismiss(animated: true, completion: nil)
+    }
+    
+    @objc private func saveBtnClick() {
+        // 1.获取当前正在显示的image
+        let cell = collectionView.visibleCells.first as! PhotoBrowserViewCell
+        guard let image = cell.imageView.image else {
+            return
+        }
+        
+        // 2.将image对象保存相册
+//        UIImageWriteToSavedPhotosAlbum(image, self, Selector(("image:didFinishSavingWithError:contextInfo:")), nil)
+    UIImageWriteToSavedPhotosAlbum(image, self, #selector(self.image(image:didFinishSavingWithError:contextInfo:)), nil)
+    }
+    
+    @objc func image(image : UIImage, didFinishSavingWithError error : NSError?, contextInfo : AnyObject) {
+        var showInfo = ""
+        if error != nil {
+            showInfo = "保存失败"
+        } else {
+            showInfo = "保存成功"
+        }
+        print(showInfo)
+//        SVProgressHUD.showInfoWithStatus(showInfo)
+    }
+    
+}
+
+
+// MARK:- 实现collectionView的数据源方法
+extension PhotoBrowserController : UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return datasourceArray.count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        // 1.创建cell
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PhotoBrowserCell, for: indexPath) as! PhotoBrowserViewCell
+        
+        // 2.给cell设置数据
+        cell.picURL = NSURL(string: datasourceArray[indexPath.item].url!)
+        cell.delegate = self
+        
+        return cell
+    }
+}
+
+// MARK:- PhotoBrowserViewCell的代理方法
+extension PhotoBrowserController : PhotoBrowserViewCellDelegate {
+    func imageViewLongPress() {
+        
+    }
+    
+    func imageViewClick() {
+        closeBtnClick()
+    }
+}
+
+// MARK:- 遵守AnimatorPresentedDelegate
+extension PhotoBrowserController : AnimatorPresentedDelegate {
+    func startRect(indexPath: NSIndexPath) -> CGRect {
+        // 1.获取cell
+        let imageView = datasourceArray[indexPath.item].sourceObject
+        
+        // 2.获取cell的frame
+        let startFrame = view.convert(imageView!.frame, to: UIApplication.shared.keyWindow!)
+        
+        return startFrame
+    }
+    
+    func endRect(indexPath: NSIndexPath) -> CGRect {
+        
+        // 1.获取该位置的image对象
+        let picURL = NSURL(string: datasourceArray[indexPath.item].url!)!
+        let image = SDWebImageManager.shared().imageCache?.imageFromDiskCache(forKey: picURL.absoluteString)
+
+        if image != nil {
+            // 2.计算结束后的frame
+
+            return imageFrameWithScreen(image: image!)
+        } else {
+            // 3.Image为空
+            SDWebImageManager.shared().imageDownloader?.downloadImage(with: picURL as URL, options: [], progress: nil, completed: { (resultImage, _, _, _) in
+//                return self.imageFrameWithScreen(image: resultImage!)
+            })
+        }
+        return CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
+    }
+    
+    // MARK:- 根据图片获取大小
+    func imageFrameWithScreen(image:UIImage) -> CGRect {
+        let size = imageSizeWithScreen(image: image)
+        let h: CGFloat = size.height
+        let w = size.width
+        var y : CGFloat = 0
+        if h > UIScreen.main.bounds.height {
+            y = 0
+        } else {
+            y = (UIScreen.main.bounds.height - h) * 0.5
+        }
+        return CGRect(x: 0, y: y, width: w, height: h)
+    }
+    
+    
+    func imageSizeWithScreen(image:UIImage) -> CGSize {
+        var size = UIScreen.main.bounds.size
+        size.height = image.size.height * size.width / image.size.width
+        return size
+    }
+    
+    func imageView(indexPath: NSIndexPath) -> UIImageView {
+        // 1.创建UIImageView对象
+        let imageView = UIImageView()
+        
+        // 2.获取该位置的image对象
+        let picURL = NSURL(string: datasourceArray[indexPath.item].url!)!
+        let image = SDWebImageManager.shared().imageCache?.imageFromDiskCache(forKey: picURL.absoluteString)
+        
+        // 3.设置imageView的属性
+        if image != nil {
+            // 3.缓存里有图片
+            imageView.image = image
+        } else {
+            // 4.设置imagView的图片
+            imageView.sd_setImage(with: picURL as URL, placeholderImage: nil)
+        }
+        
+        imageView.contentMode = .scaleAspectFill
+        imageView.clipsToBounds = true
+        
+        return imageView
+    }
+}
+
+// MARK:- 遵守AnimatorDismissDelegate
+extension PhotoBrowserController : AnimatorDismissDelegate {
+    
+    func indexPathForDimissView() -> NSIndexPath {
+        // 1.获取当前正在显示的indexPath
+        let cell = collectionView.visibleCells.first!
+        
+        return collectionView.indexPath(for: cell)! as NSIndexPath
+    }
+    
+    func imageViewForDimissView() -> UIImageView {
+        // 1.创建UIImageView对象
+        let imageView = UIImageView()
+        
+        // 2.设置imageView的frame
+        let cell = collectionView.visibleCells.first as! PhotoBrowserViewCell
+        imageView.frame = cell.imageView.frame
+        imageView.image = cell.imageView.image
+        
+        // 3.设置imageView的属性
+        imageView.contentMode = .scaleAspectFill
+        imageView.clipsToBounds = true
+        
+        return imageView
+    }
+}
+
+// MARK:- 自定义布局
+class PhotoBrowserCollectionViewLayout : UICollectionViewFlowLayout {
+    override func prepare() {
+        super.prepare()
+        
+        // 1.设置itemSize
+        itemSize = collectionView!.frame.size
+        minimumInteritemSpacing = 0
+        minimumLineSpacing = 0
+        scrollDirection = .horizontal
+        
+        // 2.设置collectionView的属性
+        collectionView?.isPagingEnabled = true
+        collectionView?.showsHorizontalScrollIndicator = false
+        collectionView?.showsVerticalScrollIndicator = false
+    }
+}
