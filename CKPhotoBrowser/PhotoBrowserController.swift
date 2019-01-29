@@ -28,17 +28,18 @@ public class PhotoBrowserController: UIViewController {
     private lazy var collectionView : UICollectionView = UICollectionView(frame: CGRect.zero, collectionViewLayout: PhotoBrowserCollectionViewLayout())
     private lazy var closeBtn : UIButton = UIButton(bgColor: UIColor.darkGray, fontSize: 14, title: "关 闭")
     private lazy var saveBtn : UIButton = UIButton(bgColor: UIColor.darkGray, fontSize: 14, title: "保 存")
+    private lazy var noticeLab : UILabel = UILabel()
     
     private lazy var photoBrowserAnimator : PhotoBrowserAnimator = PhotoBrowserAnimator()
     
     // MARK:- 自定义构造函数
-    init(currentIndex : Int, datasourceArray : [PhotoBrowerData]) {
+    public init(currentIndex : Int, datasourceArray : [PhotoBrowerData]) {
         self.currentIndex = currentIndex
         self.datasourceArray = datasourceArray
         // 开始缓存图片
         super.init(nibName: nil, bundle: nil)
     }
-    required init?(coder aDecoder: NSCoder) {
+    public required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
@@ -75,11 +76,22 @@ extension PhotoBrowserController {
         view.addSubview(collectionView)
         view.addSubview(closeBtn)
         view.addSubview(saveBtn)
+        view.addSubview(noticeLab)
         
         // 2.设置frame
         collectionView.frame = view.bounds
         closeBtn.frame = CGRect(x: 20, y: SCREEN_HEIGHT-60, width: 90, height: 30)
         saveBtn.frame = CGRect(x: SCREEN_WIDTH-100, y: SCREEN_HEIGHT-60, width: 90, height: 30)
+        
+        // 设置提醒label
+        noticeLab.frame = CGRect(x: 0, y: 0, width: 80, height: 30)
+        noticeLab.center = CGPoint(x: SCREEN_WIDTH/2, y: SCREEN_HEIGHT-80)
+        noticeLab.font = UIFont(name: "plain", size: 10.0)
+        noticeLab.textColor = UIColor.white
+        noticeLab.text = "保存成功"
+        noticeLab.textAlignment = NSTextAlignment.center
+        noticeLab.backgroundColor = UIColor.black
+        noticeLab.alpha = 0
         
         // 3.设置collectionView的属性
         collectionView.register(PhotoBrowserViewCell.self, forCellWithReuseIdentifier: PhotoBrowserCell)
@@ -88,6 +100,7 @@ extension PhotoBrowserController {
         // 4.监听两个按钮的点击
         closeBtn.addTarget(self, action: #selector(PhotoBrowserController.closeBtnClick), for: .touchUpInside)
         saveBtn.addTarget(self, action: #selector(PhotoBrowserController.saveBtnClick), for: .touchUpInside)
+        
     }
 }
 
@@ -129,7 +142,7 @@ extension PhotoBrowserController {
 
 // MARK:-设置View的显示
 extension PhotoBrowserController {
-    func show() {
+    public func show() {
         // 1.获取前一个控制器
 //        let previousVc = self.view.findController()
         let previousVc: UIViewController = UIView.currentViewController()
@@ -175,8 +188,21 @@ extension PhotoBrowserController {
         } else {
             showInfo = "保存成功"
         }
-        print(showInfo)
-//        SVProgressHUD.showInfoWithStatus(showInfo)
+        noticeLab.text = showInfo
+        
+        noticeLab.alpha = 0
+        UIView.animate(withDuration: 1.0, animations: {
+            self.noticeLab.alpha = 1.0
+        }) { (_) in
+
+        }
+        
+        // 延迟1秒
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            UIView.animate(withDuration: 1.0, animations: {
+                self.noticeLab.alpha = 0
+            }, completion: nil)
+        }
     }
     
 }
@@ -203,7 +229,7 @@ extension PhotoBrowserController : UICollectionViewDataSource {
 // MARK:- PhotoBrowserViewCell的代理方法
 extension PhotoBrowserController : PhotoBrowserViewCellDelegate {
     func imageViewLongPress() {
-        
+        saveBtnClick()
     }
     
     func imageViewClick() {

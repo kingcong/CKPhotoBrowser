@@ -23,7 +23,7 @@ class ProgressView: UIView {
         // 获取参数
         let center = CGPoint(x: rect.width * 0.5, y: rect.height * 0.5)
         let radius = rect.width * 0.5 - 3
-        let startAngle = CGFloat(Double.pi / 2)
+        let startAngle = CGFloat(-Double.pi / 2)
         let endAngle = CGFloat(2 * Double.pi) * progress + startAngle
         
         // 创建贝塞尔曲线

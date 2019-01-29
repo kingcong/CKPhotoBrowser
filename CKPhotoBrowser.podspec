@@ -1,12 +1,12 @@
 Pod::Spec.new do |s|
 
   s.name         = "CKPhotoBrowser"
-  s.version      = "1.0.1"
+  s.version      = "1.0.3"
   #主要标题
   s.summary      = "a swift photo browser"
   #详细描述（必须大于主要标题的长度）
   s.description  = <<-DESC
-              一个swift的图片浏览器
+              一个swift的图片浏览器,支持各种自定义操作，使用方便快捷
                    DESC
   #仓库主页
   s.homepage     = "https://github.com/kingcong/CKPhotoBrowser"
@@ -21,4 +21,5 @@ Pod::Spec.new do |s|
   s.framework    = "UIKit","Foundation"
   s.requires_arc = true
   s.dependency 'SDWebImage'
+  s.swift_version = '4.2'
 end

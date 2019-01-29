@@ -16,4 +16,5 @@ public class PhotoBrowerData: NSObject {
     // 图像
     public var sourceObject: UIImageView?
     
+    
 }

@@ -66,7 +66,7 @@ extension PhotoBrowserViewCell {
         imageView.isUserInteractionEnabled = true
         
         // 5.监听imageView的长按
-        let longPressGes = UITapGestureRecognizer(target: self, action: #selector(PhotoBrowserViewCell.imageViewLongPress))
+        let longPressGes = UILongPressGestureRecognizer(target: self, action: #selector(PhotoBrowserViewCell.imageViewLongPress))
         imageView.addGestureRecognizer(longPressGes)
 
     }
@@ -79,8 +79,11 @@ extension PhotoBrowserViewCell {
         delegate?.imageViewClick()
     }
     
-    @objc private func imageViewLongPress() {
-        delegate?.imageViewLongPress()
+    @objc private func imageViewLongPress(ges:UILongPressGestureRecognizer) {
+        if (ges.state==UIGestureRecognizer.State.began) {
+            delegate?.imageViewLongPress()
+        }
+
     }
 
 }

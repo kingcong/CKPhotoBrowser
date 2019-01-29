@@ -10,6 +10,7 @@ import UIKit
 
 extension UIView {
     
+    // MARK:- 得到当前正在显示的控制器
     class func currentViewController() -> UIViewController {
         let vc = UIApplication.shared.keyWindow?.rootViewController
         return UIView.findBestViewController(vc: vc!)
@@ -45,25 +46,25 @@ extension UIView {
         }
     }
     
-    // MARK:- 查找正在显示的控制器
-    func findController() -> UIViewController! {
-        return self.findControllerWithClass(UIViewController.self)
-    }
-    
-    func findNavigator() -> UINavigationController! {
-        return self.findControllerWithClass(UINavigationController.self)
-    }
-    
-    func findControllerWithClass<T>(_ clzz: AnyClass) -> T? {
-        var responder = self.next
-        while(responder != nil) {
-            if (responder!.isKind(of: clzz)) {
-                return responder as? T
-            }
-            responder = responder?.next
-        }
-        
-        return nil
-    }
+//    // MARK:- 查找正在显示的控制器
+//    func findController() -> UIViewController! {
+//        return self.findControllerWithClass(UIViewController.self)
+//    }
+//
+//    func findNavigator() -> UINavigationController! {
+//        return self.findControllerWithClass(UINavigationController.self)
+//    }
+//
+//    func findControllerWithClass<T>(_ clzz: AnyClass) -> T? {
+//        var responder = self.next
+//        while(responder != nil) {
+//            if (responder!.isKind(of: clzz)) {
+//                return responder as? T
+//            }
+//            responder = responder?.next
+//        }
+//
+//        return nil
+//    }
     
 }
