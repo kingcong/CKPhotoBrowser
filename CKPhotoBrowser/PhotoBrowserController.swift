@@ -16,13 +16,12 @@ public class PhotoBrowserController: UIViewController {
     
     // MARK:- 定义属性
     private var indexPath : NSIndexPath = NSIndexPath(item: 0, section: 0)
-    public var currentIndex: Int {
-        didSet {
-            indexPath = NSIndexPath(item: currentIndex, section: 0)
+    public var currentIndex: Int = 0
+    public var datasourceArray: [PhotoBrowerData] {
+        didSet{
+            
         }
     }
-    
-    public var datasourceArray: [PhotoBrowerData]
     
     // MARK:- 懒加载属性
     private lazy var collectionView : UICollectionView = UICollectionView(frame: CGRect.zero, collectionViewLayout: PhotoBrowserCollectionViewLayout())
@@ -36,6 +35,7 @@ public class PhotoBrowserController: UIViewController {
     public init(currentIndex : Int, datasourceArray : [PhotoBrowerData]) {
         self.currentIndex = currentIndex
         self.datasourceArray = datasourceArray
+        self.indexPath = NSIndexPath(item: currentIndex, section: 0)
         // 开始缓存图片
         super.init(nibName: nil, bundle: nil)
     }
@@ -44,10 +44,8 @@ public class PhotoBrowserController: UIViewController {
     }
     
     // MARK:- 系统回调函数
-    
     override public func loadView() {
         super.loadView()
-        
         view.frame.size.width += 20
     }
     
@@ -113,10 +111,14 @@ extension PhotoBrowserController {
         // 0.创建group
         let group = DispatchGroup()
         
-        // 1.优先缓存当前图片
-        SDWebImageManager.shared().loadImage(with: URL(string: self.datasourceArray[currentIndex].url!), options: [SDWebImageOptions.highPriority], progress: nil) { (_, _, _, _, _, _) in
-            
+        // 1.优先缓存当前网络图片，本地图片就不用缓存
+        let currentData = self.datasourceArray[currentIndex]
+        if currentData.sourceType == .netImage {
+            SDWebImageManager.shared().loadImage(with: URL(string: currentData.url!), options: [SDWebImageOptions.highPriority], progress: nil) { (_, _, _, _, _, _) in
+                
+            }
         }
+
         
         // 2.缓存图片
         var index = 0
@@ -130,9 +132,12 @@ extension PhotoBrowserController {
                 break
             }
             
-            // 缓存其他图片
-            SDWebImageManager.shared().loadImage(with: URL(string: url), options: [], progress: nil) { (_, _, _, _, _, _) in
-                group.leave()
+            // 只缓存网络图片
+            if data.sourceType == .netImage {
+                // 缓存其他图片
+                SDWebImageManager.shared().loadImage(with: URL(string: url), options: [], progress: nil) { (_, _, _, _, _, _) in
+                    group.leave()
+                }
             }
             index = index+1
         }
@@ -219,7 +224,7 @@ extension PhotoBrowserController : UICollectionViewDataSource {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PhotoBrowserCell, for: indexPath) as! PhotoBrowserViewCell
         
         // 2.给cell设置数据
-        cell.picURL = NSURL(string: datasourceArray[indexPath.item].url!)
+        cell.data = datasourceArray[indexPath.item]
         cell.delegate = self
         
         return cell
@@ -244,16 +249,26 @@ extension PhotoBrowserController : AnimatorPresentedDelegate {
         let imageView = datasourceArray[indexPath.item].sourceObject
         
         // 2.获取cell的frame
-        let startFrame = view.convert(imageView!.frame, to: UIApplication.shared.keyWindow!)
+        let startFrame = imageView!.superview!.convert(imageView!.frame, to: UIApplication.shared.keyWindow!)
         
         return startFrame
     }
     
     func endRect(indexPath: NSIndexPath) -> CGRect {
         
+        var image: UIImage?
+        
+        let data = datasourceArray[indexPath.item]
+        
+        // 判断是否是本地图片
+        if data.sourceType == .localImage {
+            image = data.image
+            return imageFrameWithScreen(image: image!)
+        }
+        
         // 1.获取该位置的image对象
         let picURL = NSURL(string: datasourceArray[indexPath.item].url!)!
-        let image = SDWebImageManager.shared().imageCache?.imageFromDiskCache(forKey: picURL.absoluteString)
+        image = SDWebImageManager.shared().imageCache?.imageFromDiskCache(forKey: picURL.absoluteString)
 
         if image != nil {
             // 2.计算结束后的frame
@@ -293,17 +308,24 @@ extension PhotoBrowserController : AnimatorPresentedDelegate {
         // 1.创建UIImageView对象
         let imageView = UIImageView()
         
-        // 2.获取该位置的image对象
-        let picURL = NSURL(string: datasourceArray[indexPath.item].url!)!
-        let image = SDWebImageManager.shared().imageCache?.imageFromDiskCache(forKey: picURL.absoluteString)
+        let data = self.datasourceArray[indexPath.item]
         
-        // 3.设置imageView的属性
-        if image != nil {
-            // 3.缓存里有图片
-            imageView.image = image
+        // 从本地加载
+        if data.sourceType == .localImage {
+            imageView.image = data.image
         } else {
-            // 4.设置imagView的图片
-            imageView.sd_setImage(with: picURL as URL, placeholderImage: nil)
+            // 2.获取该位置的image对象
+            let picURL = NSURL(string: datasourceArray[indexPath.item].url!)!
+            let image = SDWebImageManager.shared().imageCache?.imageFromDiskCache(forKey: picURL.absoluteString)
+            
+            // 3.设置imageView的属性
+            if image != nil {
+                // 3.缓存里有图片
+                imageView.image = image
+            } else {
+                // 4.设置imagView的图片
+                imageView.sd_setImage(with: picURL as URL, placeholderImage: nil)
+            }
         }
         
         imageView.contentMode = .scaleAspectFill
@@ -333,7 +355,7 @@ extension PhotoBrowserController : AnimatorDismissDelegate {
         imageView.image = cell.imageView.image
         
         // 3.设置imageView的属性
-        imageView.contentMode = .scaleAspectFill
+        imageView.contentMode = .scaleAspectFit
         imageView.clipsToBounds = true
         
         return imageView

@@ -16,9 +16,9 @@ protocol PhotoBrowserViewCellDelegate : NSObjectProtocol {
 
 class PhotoBrowserViewCell: UICollectionViewCell {
     // MARK:- 定义属性
-    var picURL : NSURL? {
+    var data: PhotoBrowerData? {
         didSet {
-            setupContent(picURL: picURL)
+            setupContent(data: data)
         }
     }
     
@@ -91,13 +91,35 @@ extension PhotoBrowserViewCell {
 // MARK:- 设置cell的内容
 extension PhotoBrowserViewCell {
     
-    private func setupContent(picURL : NSURL?) {
+    private func setupContent(data : PhotoBrowerData?) {
         // 1.nil值校验
-        guard let picURL = picURL else {
+        guard let data = data else {
             return
         }
         
-        // 2.取出image对象
+        // 2.判断是本地还是网络图片
+        switch data.sourceType {
+        case .netImage?:
+            guard let url = data.url else {
+                return
+            }
+            setupNetContent(picURL: URL(string: url)! as NSURL)
+        case .localImage?:
+            guard let image = data.image else {
+                return
+            }
+            setImageViewPosition(image: image)
+            imageView.image = image
+        default:
+            print("")
+        }
+        
+    }
+    
+    // 设置网络图片的内容
+    private func setupNetContent(picURL : NSURL!) {
+        
+        // 1.取出image对象
         let image = SDWebImageManager.shared().imageCache?.imageFromDiskCache(forKey: picURL.absoluteString)
         
         if image != nil {
