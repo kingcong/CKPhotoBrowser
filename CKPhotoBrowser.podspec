@@ -10,7 +10,7 @@ Pod::Spec.new do |s|
                    DESC
   #仓库主页
   s.homepage     = "https://github.com/kingcong/CKPhotoBrowser"
-  s.license      = "Apache License Version 2.0"
+  s.license      = "MIT"
   s.author       = { "wangcong" => "2441413514@qq.com" }
   s.platform     = :ios,'8.0'
   #仓库地址（注意下tag号）

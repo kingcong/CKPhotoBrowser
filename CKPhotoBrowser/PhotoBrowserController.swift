@@ -12,17 +12,17 @@ import SDWebImage
 
 private let PhotoBrowserCell = "PhotoBrowserCell"
 
-class PhotoBrowserController: UIViewController {
+public class PhotoBrowserController: UIViewController {
     
     // MARK:- 定义属性
     private var indexPath : NSIndexPath = NSIndexPath(item: 0, section: 0)
-    var currentIndex: Int {
+    public var currentIndex: Int {
         didSet {
             indexPath = NSIndexPath(item: currentIndex, section: 0)
         }
     }
     
-    var datasourceArray: [PhotoBrowerData]
+    public var datasourceArray: [PhotoBrowerData]
     
     // MARK:- 懒加载属性
     private lazy var collectionView : UICollectionView = UICollectionView(frame: CGRect.zero, collectionViewLayout: PhotoBrowserCollectionViewLayout())
@@ -44,13 +44,13 @@ class PhotoBrowserController: UIViewController {
     
     // MARK:- 系统回调函数
     
-    override func loadView() {
+    override public func loadView() {
         super.loadView()
         
         view.frame.size.width += 20
     }
     
-    override func viewDidLoad() {
+    override public func viewDidLoad() {
         super.viewDidLoad()
         
         // 1.设置UI界面
@@ -60,7 +60,7 @@ class PhotoBrowserController: UIViewController {
         cacheImages()
     }
     
-    override func viewDidLayoutSubviews() {
+    override public func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         // 2.滚动到对应的图片
         collectionView.scrollToItem(at: indexPath as IndexPath, at: .left, animated: false)
@@ -184,11 +184,11 @@ extension PhotoBrowserController {
 
 // MARK:- 实现collectionView的数据源方法
 extension PhotoBrowserController : UICollectionViewDataSource {
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+    public func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return datasourceArray.count
     }
     
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+    public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         // 1.创建cell
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PhotoBrowserCell, for: indexPath) as! PhotoBrowserViewCell
         

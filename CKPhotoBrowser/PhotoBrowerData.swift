@@ -8,13 +8,12 @@
 
 import UIKit
 
-class PhotoBrowerData: NSObject {
+public class PhotoBrowerData: NSObject {
     
     // 图片地址
-    var url: String?
+    public var url: String?
     
     // 图像
-    var sourceObject: UIImageView?
-    
+    public var sourceObject: UIImageView?
     
 }
