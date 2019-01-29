@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name         = "CKPhotoBrowser"
-  s.version      = "1.0.1"
+  s.version      = "1.0.0"
   #主要标题
   s.summary      = "a swift photo browser"
   #详细描述（必须大于主要标题的长度）
@@ -10,7 +10,7 @@ Pod::Spec.new do |s|
                    DESC
   #仓库主页
   s.homepage     = "https://github.com/kingcong/CKPhotoBrowser"
-  s.license      = "MIT"
+  s.license      = "Apache License Version 2.0"
   s.author       = { "wangcong" => "2441413514@qq.com" }
   s.platform     = :ios,'8.0'
   #仓库地址（注意下tag号）
