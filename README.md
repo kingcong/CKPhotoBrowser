@@ -3,7 +3,7 @@
 CKPhotoBrowser是基于Swift4.0版本开发的图片浏览器框架，开发思路模仿了微信、微博图片浏览器的动态效果，功能强大，集成方便并且易于扩展。
 
 ## 展示
-![](https://github.com/kingcong/CKPhotoBrowser/blob/master/CKPhotoBrowser-Demo/PhotoBrower/images/demo.gif)
+![](https://github.com/kingcong/CKPhotoBrowser/blob/master/CKPhotoBrowser-Demo/PhotoBrower/images/demo2.gif?raw=true)
 
 ## 安装
 ### CocoaPods

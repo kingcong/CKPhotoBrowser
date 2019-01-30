@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name         = "CKPhotoBrowser"
-  s.version      = "1.0.3"
+  s.version      = "1.0.4"
   #主要标题
   s.summary      = "a swift photo browser"
   #详细描述（必须大于主要标题的长度）
