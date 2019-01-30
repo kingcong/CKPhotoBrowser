@@ -14,14 +14,6 @@ private let reuseIdentifier = "CellID"
 class ImageCollectionViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
     
     var collectionView: UICollectionView? = nil
-    
-//    let urlstrs = ["http://wx2.sinaimg.cn/bmiddle/8c803935ly1fzkxv3ljk6j20j10wfjxo.jpg",
-//                   "http://wx1.sinaimg.cn/bmiddle/8c803935ly1fzkxvlqk2sj20j20bv40t.jpg",
-//                   "http://wx3.sinaimg.cn/bmiddle/8c803935ly1fzkxvlh6xwj20fa05wq4n.jpg",
-//                   "http://wx3.sinaimg.cn/bmiddle/8c803935ly1fzky5m8ok9j20ku0uwdl9.jpg",
-//                   "http://wx4.sinaimg.cn/bmiddle/8c803935ly1fzky39r20fj20ro04z0tf.jpg"]
-    
-
     let urlstrs = ["https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1548786775868&di=10de54f5f5131d08b0eb8076c8a50866&imgtype=0&src=http%3A%2F%2Fk1.jsqq.net%2Fuploads%2Fallimg%2F160609%2F5_160609154717_1.jpg",
                    "https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1548786775866&di=332e61b5f2c8f92032f2490e228946e5&imgtype=0&src=http%3A%2F%2Fpic23.nipic.com%2F20120824%2F7103350_125929483000_2.jpg",
                    "https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1548786775899&di=ada04b320c85440f8cfc9b0378837564&imgtype=0&src=http%3A%2F%2Fimg0.ph.126.net%2FhR270vvvXfhUZeZPhJRC6Q%3D%3D%2F2174957145143848911.jpg",
@@ -35,7 +27,7 @@ class ImageCollectionViewController: UIViewController, UICollectionViewDataSourc
         
         // Do any additional setup after loading the view.
         let layout = UICollectionViewFlowLayout.init()
-        layout.itemSize = CGSize(width: 80, height: 80)
+        layout.itemSize = CGSize(width: 100, height: 100)
         layout.minimumLineSpacing = 5
         layout.minimumInteritemSpacing = 5
         layout.scrollDirection = .vertical
@@ -71,10 +63,11 @@ class ImageCollectionViewController: UIViewController, UICollectionViewDataSourc
             cell = UICollectionViewCell()
         }
         
-        cell.backgroundColor = armColor()
+//        cell.backgroundColor = armColor()
         
-        let imageView = UIImageView(frame: CGRect(x: 0, y: 0, width: 80, height: 80))
-        imageView.contentMode = .scaleAspectFit
+        let imageView = UIImageView(frame: CGRect(x: 0, y: 0, width: cell.bounds.size.width, height: cell.bounds.size.height))
+        imageView.contentMode = .scaleAspectFill
+        imageView.clipsToBounds = true
         cell.contentView.addSubview(imageView)
         cell.tag = indexPath.item
         imageView.sd_setImage(with: URL(string: self.urlstrs[indexPath.item]), completed: nil)

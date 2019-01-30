@@ -101,6 +101,7 @@ extension PhotoBrowserAnimator : UIViewControllerAnimatedTransitioning {
             UIView.animate(withDuration: transitionDuration(using: transitionContext), animations: {
                 imageView.frame = presentedDelegate.startRect(indexPath: indexPath)
             }) { (_) in
+                imageView.removeFromSuperview()
                 transitionContext.completeTransition(true)
             }
         }

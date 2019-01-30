@@ -19,7 +19,7 @@ class LocalImageCollectionViewController: UIViewController, UICollectionViewData
         
         // Do any additional setup after loading the view.
         let layout = UICollectionViewFlowLayout.init()
-        layout.itemSize = CGSize(width: 80, height: 80)
+        layout.itemSize = CGSize(width: 100, height: 100)
         layout.minimumLineSpacing = 5
         layout.minimumInteritemSpacing = 5
         layout.scrollDirection = .vertical
@@ -55,10 +55,9 @@ class LocalImageCollectionViewController: UIViewController, UICollectionViewData
             cell = UICollectionViewCell()
         }
         
-//        cell.backgroundColor = armColor()
-        
-        let imageView = UIImageView(frame: CGRect(x: 0, y: 0, width: 80, height: 80))
-        imageView.contentMode = .scaleAspectFit
+        let imageView = UIImageView(frame: CGRect(x: 0, y: 0, width: cell.bounds.size.width, height: cell.bounds.size.height))
+        imageView.contentMode = .scaleAspectFill
+        imageView.clipsToBounds = true
         cell.contentView.addSubview(imageView)
         imageView.image = UIImage(named: self.urlstrs[indexPath.item])
         

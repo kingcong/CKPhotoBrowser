@@ -20,7 +20,7 @@ class HomeTableViewController: UITableViewController {
         tableView.tableHeaderView = UIView(frame: CGRect(x: 0, y: 0, width: 300, height: 50))
         tableView.tableFooterView = UIView()
         
-        self.title = "CWPhotoBrowser Demo"
+        self.title = "CKPhotoBrowser Demo"
     }
     
 
