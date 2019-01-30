@@ -328,6 +328,8 @@ extension PhotoBrowserController : AnimatorPresentedDelegate {
             }
         }
         
+//        imageView.contentMode = data.sourceObject!.contentMode
+//        imageView.clipsToBounds = data.sourceObject!.clipsToBounds
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
         
@@ -354,9 +356,11 @@ extension PhotoBrowserController : AnimatorDismissDelegate {
         imageView.frame = cell.imageView.frame
         imageView.image = cell.imageView.image
         
+        let indexPath = collectionView.indexPath(for: cell)!
+        let data = datasourceArray[indexPath.item]
         // 3.设置imageView的属性
-        imageView.contentMode = .scaleAspectFit
-        imageView.clipsToBounds = true
+        imageView.contentMode = data.sourceObject?.contentMode ?? .scaleAspectFill
+        imageView.clipsToBounds = data.sourceObject?.clipsToBounds ?? true
         
         return imageView
     }
