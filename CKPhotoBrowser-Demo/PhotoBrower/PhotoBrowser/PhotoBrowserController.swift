@@ -25,10 +25,8 @@ public class PhotoBrowserController: UIViewController {
     
     // MARK:- 懒加载属性
     private lazy var collectionView : UICollectionView = UICollectionView(frame: CGRect.zero, collectionViewLayout: PhotoBrowserCollectionViewLayout())
-    private lazy var closeBtn : UIButton = UIButton(bgColor: UIColor.darkGray, fontSize: 14, title: "关 闭")
-    private lazy var saveBtn : UIButton = UIButton(bgColor: UIColor.darkGray, fontSize: 14, title: "保 存")
     private lazy var noticeLab : UILabel = UILabel()
-    
+    private lazy var pageControl: UIPageControl = UIPageControl()
     private lazy var photoBrowserAnimator : PhotoBrowserAnimator = PhotoBrowserAnimator()
     
     // MARK:- 自定义构造函数
@@ -72,32 +70,35 @@ extension PhotoBrowserController {
     private func setupUI() {
         // 1.添加子控件
         view.addSubview(collectionView)
-        view.addSubview(closeBtn)
-        view.addSubview(saveBtn)
         view.addSubview(noticeLab)
+        view.addSubview(pageControl)
         
         // 2.设置frame
         collectionView.frame = view.bounds
-        closeBtn.frame = CGRect(x: 20, y: SCREEN_HEIGHT-60, width: 90, height: 30)
-        saveBtn.frame = CGRect(x: SCREEN_WIDTH-100, y: SCREEN_HEIGHT-60, width: 90, height: 30)
         
-        // 设置提醒label
+        // 3.设置pageControl
+        pageControl.frame = CGRect(x: 0, y: 0, width: 100, height: 20)
+        pageControl.center = CGPoint(x: SCREEN_WIDTH*0.5, y: SCREEN_HEIGHT-30)
+        pageControl.currentPageIndicatorTintColor = UIColor.white;
+        pageControl.pageIndicatorTintColor = UIColor.lightGray
+        pageControl.hidesForSinglePage = true
+        pageControl.numberOfPages = datasourceArray.count
+        pageControl.currentPage = currentIndex
+        
+        // 4.设置提醒label
         noticeLab.frame = CGRect(x: 0, y: 0, width: 80, height: 30)
         noticeLab.center = CGPoint(x: SCREEN_WIDTH/2, y: SCREEN_HEIGHT-80)
         noticeLab.font = UIFont(name: "plain", size: 10.0)
         noticeLab.textColor = UIColor.white
-        noticeLab.text = "保存成功"
+        noticeLab.text = SAVE_SUCCESS
         noticeLab.textAlignment = NSTextAlignment.center
         noticeLab.backgroundColor = UIColor.black
         noticeLab.alpha = 0
         
-        // 3.设置collectionView的属性
+        // 5.设置collectionView的属性
         collectionView.register(PhotoBrowserViewCell.self, forCellWithReuseIdentifier: PhotoBrowserCell)
         collectionView.dataSource = self
-        
-        // 4.监听两个按钮的点击
-        closeBtn.addTarget(self, action: #selector(PhotoBrowserController.closeBtnClick), for: .touchUpInside)
-        saveBtn.addTarget(self, action: #selector(PhotoBrowserController.saveBtnClick), for: .touchUpInside)
+        collectionView.delegate = self
         
     }
 }
@@ -119,7 +120,6 @@ extension PhotoBrowserController {
             }
         }
 
-        
         // 2.缓存图片
         var index = 0
         for data in self.datasourceArray {
@@ -182,7 +182,6 @@ extension PhotoBrowserController {
         }
         
         // 2.将image对象保存相册
-//        UIImageWriteToSavedPhotosAlbum(image, self, Selector(("image:didFinishSavingWithError:contextInfo:")), nil)
     UIImageWriteToSavedPhotosAlbum(image, self, #selector(self.image(image:didFinishSavingWithError:contextInfo:)), nil)
     }
     
@@ -214,7 +213,7 @@ extension PhotoBrowserController {
 
 
 // MARK:- 实现collectionView的数据源方法
-extension PhotoBrowserController : UICollectionViewDataSource {
+extension PhotoBrowserController : UICollectionViewDataSource, UICollectionViewDelegate{
     public func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return datasourceArray.count
     }
@@ -229,6 +228,11 @@ extension PhotoBrowserController : UICollectionViewDataSource {
         
         return cell
     }
+    
+    public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        
+    }
+    
 }
 
 // MARK:- PhotoBrowserViewCell的代理方法
@@ -239,6 +243,15 @@ extension PhotoBrowserController : PhotoBrowserViewCellDelegate {
     
     func imageViewClick() {
         closeBtnClick()
+    }
+}
+
+// MARK:- PhotoBrowserController的ScrollView的代理方法
+extension PhotoBrowserController : UIScrollViewDelegate {
+    public func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        let page: CGFloat = scrollView.contentOffset.x / scrollView.frame.size.width
+        let currentPage: NSInteger = NSInteger(page)
+        pageControl.currentPage = (page - CGFloat(currentPage)) < 0.5 ? currentPage : currentPage+1
     }
 }
 

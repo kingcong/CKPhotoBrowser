@@ -29,6 +29,9 @@ class PhotoBrowserViewCell: UICollectionViewCell {
     private lazy var progressView : ProgressView = ProgressView()
     lazy var imageView : UIImageView = UIImageView()
     
+    private var originFrame: CGRect = CGRect(x: 0, y: 0, width: 0, height: 0)
+    private var isZoom: Bool = true
+    
     // MARK:- 构造函数
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -53,6 +56,11 @@ extension PhotoBrowserViewCell {
         // 2.设置子控件frame
         scrollView.frame = contentView.bounds
         scrollView.frame.size.width -= 20
+        scrollView.delegate = self
+        // 设ScrollView的缩放比例
+        scrollView.minimumZoomScale = 1
+        scrollView.maximumZoomScale = 5
+        
         progressView.bounds = CGRect(x: 0, y: 0, width: 50, height: 50)
         progressView.center = CGPoint(x: UIScreen.main.bounds.width * 0.5, y: UIScreen.main.bounds.height * 0.5)
         
@@ -62,13 +70,20 @@ extension PhotoBrowserViewCell {
         
         // 4.监听imageView的点击
         let tapGes = UITapGestureRecognizer(target: self, action: #selector(PhotoBrowserViewCell.imageViewClick))
-        imageView.addGestureRecognizer(tapGes)
-        imageView.isUserInteractionEnabled = true
+        tapGes.numberOfTapsRequired = 1
+        scrollView.addGestureRecognizer(tapGes)
         
         // 5.监听imageView的长按
         let longPressGes = UILongPressGestureRecognizer(target: self, action: #selector(PhotoBrowserViewCell.imageViewLongPress))
-        imageView.addGestureRecognizer(longPressGes)
+        scrollView.addGestureRecognizer(longPressGes)
 
+        // 6.监听imageView的双击
+        let doubleTapGes = UITapGestureRecognizer(target: self, action: #selector(PhotoBrowserViewCell.imageViewDoubleClick))
+        doubleTapGes.numberOfTapsRequired = 2
+        scrollView.addGestureRecognizer(doubleTapGes)
+        
+        // 7.设置单击和双击冲突事件
+        tapGes.require(toFail: doubleTapGes)
     }
 }
 
@@ -86,6 +101,43 @@ extension PhotoBrowserViewCell {
 
     }
 
+    @objc private func imageViewDoubleClick(ges:UITapGestureRecognizer) {
+        var newScale: CGFloat = 0.0
+        if isZoom { // 方法
+            newScale = 2 * 1.5
+            isZoom = false
+        } else {
+            newScale = 1.0
+            isZoom = true
+        }
+        
+        scrollView.zoom(to: zoomRectForScale(scale: newScale, center: scrollView.center), animated: true)
+    }
+    
+    func zoomRectForScale(scale: CGFloat, center: CGPoint) -> CGRect {
+        var zoomRect = CGRect(x: 0, y: 0, width: 0, height: 0);
+        zoomRect.size.height = scrollView.frame.size.height / scale;
+        zoomRect.size.width  = scrollView.frame.size.width  / scale;
+        zoomRect.origin.x    = center.x - (zoomRect.size.width  / 2.0);
+        zoomRect.origin.y    = center.y - (zoomRect.size.height / 2.0);
+        return zoomRect;
+    }
+    
+}
+
+extension PhotoBrowserViewCell : UIScrollViewDelegate {
+    func viewForZooming(in scrollView: UIScrollView) -> UIView? {
+        return imageView
+    }
+    
+    func scrollViewDidZoom(_ scrollView: UIScrollView) {
+        //捏合图片时调整图片的位置
+        let offsetX: CGFloat = (scrollView.bounds.size.width > scrollView.contentSize.width) ? (scrollView.bounds.size.width-scrollView.contentSize.width)/2 : 0.0
+        let offsetY: CGFloat = (scrollView.bounds.size.height > scrollView.contentSize.height) ? (scrollView.bounds.size.height-scrollView.contentSize.height)/2 : 0.0
+        self.imageView.center = CGPoint(x:scrollView.contentSize.width/2+offsetX, y:scrollView.contentSize.height/2+offsetY)
+    }
+    
+    
 }
 
 // MARK:- 设置cell的内容
@@ -157,6 +209,7 @@ extension PhotoBrowserViewCell {
             y = (UIScreen.main.bounds.height - height) * 0.5
         }
         imageView.frame = CGRect(x: 0, y: y, width: size.width, height: size.height)
+        originFrame = imageView.frame
         scrollView.contentSize = CGSize(width: 0, height: height)
     }
     

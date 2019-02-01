@@ -10,6 +10,7 @@ import UIKit
 
 let SCREEN_HEIGHT = UIScreen.main.bounds.height
 let SCREEN_WIDTH = UIScreen.main.bounds.width
+let SAVE_SUCCESS = "保存成功"
 
 public enum PhotoBrowerDataSourceType {
     case localImage     // 本地图片

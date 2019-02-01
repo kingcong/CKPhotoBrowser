@@ -11,7 +11,7 @@ Pod::Spec.new do |s|
   #仓库主页
   s.homepage     = "https://github.com/kingcong/CKPhotoBrowser"
   s.license      = "MIT"
-  s.author       = { "wangcong" => "2441413514@qq.com" }
+  s.author       = { "kangcong" => "2441413514@qq.com" }
   s.platform     = :ios,'8.0'
   #仓库地址（注意下tag号）
   s.source       = { :git => "https://github.com/kingcong/CKPhotoBrowser.git", :tag => "#{s.version}" }
